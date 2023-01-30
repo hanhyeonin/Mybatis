@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+ <mapper namespace="test">
+ 	<!-- id속성값은 식별자 : 보통 메소드이름과 동일하게 합니다. 
+ 	sql 실행에 필요한 값들에 대해 자바클래스와 테이블의 컬럼을 매핑하여 처리합니다.
+ 	1)값 대입할 ? 는 el 기호 #{}로 변경합니다. -> 실행할때 대입되는 기호
+ 	2)값 대입할 형식을 parameterType속성에 설정합니다.(패키지명.클래스명 형식)
+ 	3)sql실행결과 매핑될 데이터 타입을 resultType으로 설정합니다.(패키지명.클래스명 형식)
+ 	-->
+ 	
+ 	<!-- insert, update, delete 는 자동으로 return 값이 생김. -->
+ 	<insert id="insert" parameterType="org.iclass.vo.NewMember" >
+ 		INSERT INTO new_member 
+		VALUES (#{id},#{name},#{password},#{email},#{age,jdbcType=NUMERIC},#{gender,jdbcType=CHAR},#{hobbies,jdbcType=VARCHAR},sysdate)
+	<!-- 파라미터타입이 클래스일때 #{} 는 프로퍼티이름을 정확히 대소문자 구분하여 작성하세요. 
+		여기서의 프로퍼티 이름은 vo 클래스의 변수명입니다.-->
+ 	</insert>
+ 	
+ 	<update id="update" parameterType="org.iclass.vo.NewMember">
+	 	UPDATE new_member
+		SET email=#{email}, hobbies=#{hobbies} 
+		WHERE id=#{id}
+ 	</update>
+ 	
+ 	<delete id="delete" parameterType="String">
+ 		DELETE FROM new_member 
+ 		WHERE id=#{id}
+ 	</delete>
+ 	
+ 	
+ 	<!-- select 실행결과를 자동으로 NewMember 객체를 생성해서 매핑을 합니다. -->
+ 	<select id="selectOne" parameterType="String" resultType="org.iclass.vo.NewMember">
+ 		SELECT * FROM new_member WHERE id=#{id}	<!-- PK로 조회 -->
+ 	</select>
+ 	<!-- select 실행결과가 여러행이 되는 List인 경우에는 <T>에 해당하는 제너릭타입을 설정합니다.
+ 		 select 조회 컬럼과 NewMember 자바 객체의 필드를 매핑합니다.
+ 	 -->
+ 	<select id="selectAll" resultType="org.iclass.vo.NewMember">
+ 		SELECT * FROM new_member
+ 	</select>	
+ 	
+ 	<!-- 테스트 검색 -->
+ 	<select id="searchName" parameterType="String" resultType="org.iclass.vo.NewMember">
+ 		SELECT * FROM new_member 
+ 		WHERE name like '%'||#{find}||'%'
+ 	</select>
+ 	<!-- 동적쿼리 검색 -->
+ 	<select id="search" parameterType="java.util.Map" resultType="org.iclass.vo.NewMember">
+ 		SELECT * FROM new_member 	<!-- 아래 if가 참인 것은 1개입니다. 참인 경우의 where를 추가 -->
+	 	<if test="column=='id'">
+	 		WHERE id like '%'||#{find}||'%'		<!-- || 는 문자열 연결 -->
+	 	</if>
+	 	<if test="column=='email'">
+	 		WHERE email like '%'||#{find}||'%'
+	 	</if>
+	 	<if test="column=='name'">
+	 		WHERE name like '%'||#{find}||'%'
+	 	</if>
+	 	<if test="column=='hobbies'">
+	 		WHERE hobbies=#{find}
+	 	</if>
+ 	</select>	<!-- Map 에 저장된 key 이름은 ? "find", "column" 
+ 					column 키의 값은 테이블의 컬럼명으로 하거나 규칙을 정해서 할 수 있습니다.
+ 				-->
+ 	
+ 	<!-- *로그인 테스트. -->
+ 	<select id="login" parameterType="java.util.Map" resultType="org.iclass.vo.NewMember">	
+ 	<!-- Key 이름 : "id", "password" 2개를 지정한 Map -->
+ 		SELECT id,name,email FROM new_member  
+ 		WHERE id=#{id} and password=#{password}			<!-- <"id",momo> <"password",1212> -->
+ 		<!-- TEST 할때 map에 담긴 <Key, Value>
+ 			SELECT id, name, email FROM new_member
+ 			WHERE id='momo' AND password = '1212'; 와 동일
+ 		 -->
+ 	</select>
+ </mapper>
+ 
+ 
+ 
+ 
+ 
+ 
